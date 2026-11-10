@@ -1,0 +1,515 @@
+<!doctype html>
+<html lang="id">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>Screening Paslon HIMBIO</title>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Bricolage+Grotesque:opsz,wght@12..96,600;12..96,700&family=IBM+Plex+Mono:wght@400;500&family=Public+Sans:wght@400;500;600&display=swap">
+<style>
+/* Layout: berita acara screening. Header, strip ringkasan status, syarat yang bisa diubah, lalu daftar paslon yang bisa dibuka untuk cek kriteria dan berkas. */
+:root{
+  --bg:#f2f5fb; --surface:#ffffff; --field:#f3f6fc; --ink:#0e1a3d; --muted:#56628a; --line:#d8deee;
+  --accent:#1d3d91; --accent-ink:#ffffff; --gold:#d9a406;
+  --ok:#16724a; --ok-bg:#dff3e8; --warn:#8f5200; --warn-bg:#fcecc9; --bad:#a8261f; --bad-bg:#fadedb;
+  --font-display:'Bricolage Grotesque','Segoe UI',system-ui,sans-serif;
+  --font-body:'Public Sans',system-ui,-apple-system,'Segoe UI',sans-serif;
+  --font-mono:'IBM Plex Mono',ui-monospace,Menlo,Consolas,monospace;
+}
+@media (prefers-color-scheme: dark){
+  :root:not([data-theme="light"]){
+    --bg:#0b1126; --surface:#131b38; --field:#0e1530; --ink:#e8ecfa; --muted:#9ba6c9; --line:#262f57;
+    --accent:#86a2f7; --accent-ink:#0b1126; --gold:#f0bd2c;
+    --ok:#5bd49a; --ok-bg:#12332a; --warn:#f0b95a; --warn-bg:#3a2c10; --bad:#ff8f86; --bad-bg:#3f1b1e;
+    color-scheme:dark;
+  }
+}
+:root[data-theme="dark"]{
+  --bg:#0b1126; --surface:#131b38; --field:#0e1530; --ink:#e8ecfa; --muted:#9ba6c9; --line:#262f57;
+  --accent:#86a2f7; --accent-ink:#0b1126; --gold:#f0bd2c;
+  --ok:#5bd49a; --ok-bg:#12332a; --warn:#f0b95a; --warn-bg:#3a2c10; --bad:#ff8f86; --bad-bg:#3f1b1e;
+  color-scheme:dark;
+}
+*{box-sizing:border-box}
+body{background:var(--bg);color:var(--ink);font-family:var(--font-body);font-size:15px;line-height:1.55}
+.wrap{max-width:1040px;margin:0 auto;padding-block:30px 64px;padding-left:max(16px,env(safe-area-inset-left,0px));padding-right:max(16px,env(safe-area-inset-right,0px));display:grid;gap:30px}
+.sr{position:absolute;width:1px;height:1px;overflow:hidden;clip:rect(0 0 0 0);white-space:nowrap}
+button,input,textarea{font:inherit;color:inherit}
+:focus-visible{outline:2px solid var(--accent);outline-offset:2px}
+
+/* header */
+.top{display:grid;gap:12px;max-width:46rem}
+.eyebrow{display:flex;align-items:center;gap:8px;margin:0;font-size:.74rem;font-weight:600;letter-spacing:.12em;text-transform:uppercase;color:var(--muted)}
+.eyebrow::before{content:"";width:10px;height:10px;background:var(--gold);flex:none}
+h1{margin:0;font-family:var(--font-display);font-weight:700;font-size:clamp(2.1rem,6vw,3.4rem);line-height:1.02;letter-spacing:-.02em;text-wrap:balance}
+.lede{margin:0;color:var(--muted);max-width:60ch}
+.himp{display:grid;gap:4px;margin-top:6px}
+.himp label{font-size:.74rem;font-weight:600;letter-spacing:.08em;text-transform:uppercase;color:var(--muted)}
+.himp input{width:100%;max-width:30rem;background:none;border:0;border-bottom:2px solid var(--line);padding:4px 0;font-family:var(--font-display);font-weight:600;font-size:1.25rem;border-radius:0}
+.himp input:focus{border-color:var(--accent);outline:none}
+.himp input:focus-visible{outline:none;border-color:var(--accent)}
+
+/* summary */
+.summary{display:flex;flex-wrap:wrap;align-items:center;gap:16px 36px;padding:20px 0;border-block:1px solid var(--line)}
+.total{display:grid;line-height:1}
+.total b{font-family:var(--font-display);font-size:3rem;font-weight:700;font-variant-numeric:tabular-nums}
+.total span{font-size:.8rem;color:var(--muted);margin-top:4px}
+.dist{flex:1 1 18rem;min-width:0;display:grid;gap:10px}
+.bar{display:flex;gap:3px;height:12px}
+.bar span{min-width:0;border-radius:3px;flex-basis:0;flex-shrink:1}
+.bar .b-ok{background:var(--ok)} .bar .b-warn{background:var(--warn)} .bar .b-bad{background:var(--bad)} .bar .b-none{background:var(--line);flex-grow:1}
+.legend{display:flex;flex-wrap:wrap;gap:6px 22px;margin:0;padding:0;list-style:none;font-size:.88rem}
+.legend li{display:flex;align-items:center;gap:7px}
+.legend i{width:10px;height:10px;border-radius:2px;display:inline-block}
+.legend b{font-variant-numeric:tabular-nums}
+
+/* section */
+h2{margin:0 0 4px;font-family:var(--font-display);font-size:1.35rem;font-weight:700;letter-spacing:-.01em}
+.sec-note{margin:0 0 14px;color:var(--muted);font-size:.9rem;max-width:62ch}
+.req-grid{display:grid;grid-template-columns:repeat(auto-fit,minmax(11rem,1fr));gap:12px}
+.req-grid label{display:grid;gap:5px;font-size:.82rem;font-weight:600;color:var(--muted)}
+.req-grid .hint{font-weight:400;font-size:.78rem}
+
+.fld{background:var(--field);color:var(--ink);border:1px solid var(--line);border-radius:6px;padding:7px 9px;min-width:0}
+.fld.num{width:100%;font-family:var(--font-mono);font-size:.92rem}
+.tbl .fld.num{width:5.4rem}
+.fld.txt{width:100%}
+textarea.fld{width:100%;resize:vertical;min-height:4.5rem}
+input[type=checkbox]{accent-color:var(--accent);width:1.05rem;height:1.05rem;margin:0;flex:none}
+
+/* toolbar */
+.bar-tools{display:flex;flex-wrap:wrap;gap:10px 14px;align-items:center;margin-bottom:14px}
+.chips{display:flex;flex-wrap:wrap;gap:6px}
+.chip{border:1px solid var(--line);background:var(--surface);border-radius:999px;padding:5px 12px;font-size:.84rem;font-weight:500;cursor:pointer}
+.chip[aria-pressed="true"]{background:var(--accent);border-color:var(--accent);color:var(--accent-ink)}
+.chip em{font-style:normal;font-variant-numeric:tabular-nums;opacity:.75;margin-left:4px}
+.search{flex:1 1 12rem;min-width:0;max-width:20rem}
+.actions{display:flex;flex-wrap:wrap;gap:8px;margin-left:auto}
+.btn{border:1px solid var(--accent);background:var(--accent);color:var(--accent-ink);border-radius:7px;padding:7px 14px;font-weight:600;font-size:.88rem;cursor:pointer}
+.btn.ghost{background:none;color:var(--accent)}
+.btn.danger{border-color:var(--bad);color:var(--bad);background:none}
+#msg{font-size:.84rem;color:var(--muted);min-height:1.2em}
+
+.note{display:flex;flex-wrap:wrap;gap:8px 14px;align-items:center;justify-content:space-between;padding:10px 14px;border:1px dashed var(--line);border-radius:8px;color:var(--muted);font-size:.86rem;margin-bottom:14px}
+
+/* list */
+.list{display:grid;gap:10px}
+.row{background:var(--surface);border:1px solid var(--line);border-radius:8px}
+.row-head{display:grid;grid-template-columns:auto minmax(0,1fr) minmax(0,17rem) auto;grid-template-areas:"no names state chev";gap:8px 20px;align-items:center;width:100%;text-align:left;padding:14px 16px;background:none;border:0;cursor:pointer;border-radius:8px}
+.no{grid-area:no;font-family:var(--font-display);font-weight:700;font-size:2rem;line-height:1;color:var(--accent);min-width:2.2ch;font-variant-numeric:tabular-nums}
+.names{grid-area:names;display:grid;gap:3px;min-width:0}
+.nm{display:flex;gap:10px;align-items:baseline;min-width:0;overflow-wrap:anywhere}
+.nm i{font-style:normal;flex:none;width:3.2rem;font-size:.7rem;font-weight:600;letter-spacing:.08em;text-transform:uppercase;color:var(--muted)}
+.nm span{font-weight:600}
+.state{grid-area:state;display:grid;gap:6px;justify-items:start;min-width:0}
+.pill{display:inline-flex;align-items:center;gap:6px;border-radius:999px;padding:3px 11px;font-size:.8rem;font-weight:600}
+.sub{font-size:.8rem;color:var(--muted);overflow-wrap:anywhere}
+.segs{display:grid;grid-template-columns:repeat(6,1fr);gap:3px;width:100%;max-width:10rem}
+.seg{height:5px;border-radius:3px;background:var(--line)}
+.chev{grid-area:chev;width:.6rem;height:.6rem;border-right:2px solid var(--muted);border-bottom:2px solid var(--muted);transform:rotate(45deg);transition:transform .15s;margin:0 4px 4px 0}
+[aria-expanded="true"] .chev{transform:rotate(-135deg);margin:4px 4px 0 0}
+.row[data-status="lolos"] .pill{background:var(--ok-bg);color:var(--ok)}
+.row[data-status="perbaikan"] .pill{background:var(--warn-bg);color:var(--warn)}
+.row[data-status="gugur"] .pill{background:var(--bad-bg);color:var(--bad)}
+.row[data-status="lolos"] .seg.on{background:var(--ok)}
+.row[data-status="perbaikan"] .seg.on{background:var(--warn)}
+.row[data-status="gugur"] .seg.on{background:var(--bad)}
+
+.detail{display:grid;grid-template-columns:minmax(0,1.8fr) minmax(0,1fr);gap:22px;padding:16px;border-top:1px solid var(--line)}
+.detail[hidden]{display:none}
+.tbl-wrap{overflow-x:auto}
+.tbl{width:100%;min-width:34rem;border-collapse:collapse;font-size:.88rem}
+.tbl th,.tbl td{padding:7px 8px;text-align:left;vertical-align:middle;border-bottom:1px solid var(--line)}
+.tbl thead th{font-size:.72rem;letter-spacing:.08em;text-transform:uppercase;color:var(--muted);font-weight:600}
+.tbl tbody th{font-weight:500}
+.req{font-family:var(--font-mono);font-size:.82rem;color:var(--muted);white-space:nowrap}
+.cell{display:flex;align-items:center;gap:8px}
+.cell label{display:flex;align-items:center;gap:6px;font-size:.84rem}
+.mark{display:inline-grid;place-items:center;width:1.45rem;height:1.45rem;border-radius:50%;font-size:.78rem;font-weight:700;flex:none}
+.mark.ok{background:var(--ok-bg);color:var(--ok)}
+.mark.bad{background:var(--bad-bg);color:var(--bad)}
+.side{display:grid;gap:16px;align-content:start;min-width:0}
+fieldset{margin:0;padding:0;border:0;min-width:0}
+legend{display:flex;justify-content:space-between;width:100%;padding:0;margin-bottom:8px;font-size:.74rem;font-weight:600;letter-spacing:.08em;text-transform:uppercase;color:var(--muted)}
+.chk{display:flex;gap:9px;align-items:flex-start;padding:6px 0;border-bottom:1px solid var(--line);font-size:.9rem}
+.chk input{margin-top:.2rem}
+.side label.lbl{display:block;margin-bottom:6px;font-size:.74rem;font-weight:600;letter-spacing:.08em;text-transform:uppercase;color:var(--muted)}
+
+.empty,.none{padding:34px 18px;text-align:center;border:1px dashed var(--line);border-radius:8px;color:var(--muted)}
+.empty p{margin:0 0 14px}
+.empty .actions{justify-content:center;margin:0}
+
+/* add form */
+#addForm{display:grid;gap:16px;padding:18px;background:var(--surface);border:1px solid var(--line);border-radius:8px;margin-bottom:14px}
+#addForm[hidden]{display:none}
+.pair{display:grid;grid-template-columns:repeat(auto-fit,minmax(16rem,1fr));gap:18px}
+.pair fieldset{display:grid;grid-template-columns:repeat(2,minmax(0,1fr));gap:10px}
+.pair legend{grid-column:1/-1}
+.pair label{display:grid;gap:4px;font-size:.8rem;font-weight:600;color:var(--muted)}
+.pair label.wide{grid-column:1/-1}
+#addErr{margin:0;color:var(--bad);font-size:.88rem;min-height:1.2em}
+#rekap{display:grid;gap:6px;margin-top:14px}
+#rekap[hidden]{display:none}
+#rekap textarea{min-height:11rem;font-family:var(--font-mono);font-size:.82rem}
+.foot{margin:0;color:var(--muted);font-size:.84rem;max-width:68ch}
+
+@media (max-width:760px){
+  .row-head{grid-template-columns:auto minmax(0,1fr) auto;grid-template-areas:"no names chev" "state state state"}
+  .detail{grid-template-columns:minmax(0,1fr)}
+  .actions{margin-left:0}
+}
+@media (prefers-reduced-motion:reduce){*{transition:none!important;scroll-behavior:auto!important}}
+</style>
+
+<style>body{margin:0}</style>
+</head>
+<body>
+<div class="wrap">
+  <header class="top">
+    <p class="eyebrow">Pemira Himpunan · Universitas Padjadjaran</p>
+    <h1>Screening Paslon</h1>
+    <p class="lede">Cek syarat dan kelengkapan berkas calon Ketua dan Wakil Ketua sebelum paslon ditetapkan sebagai peserta pemilihan periode 2027.</p>
+    <div class="himp">
+      <label for="himpunan">Nama himpunan</label>
+      <input id="himpunan" type="text" autocomplete="off" maxlength="80">
+    </div>
+  </header>
+
+  <section class="summary" aria-label="Ringkasan hasil screening" id="summary"></section>
+
+  <section aria-labelledby="h-syarat">
+    <h2 id="h-syarat">Syarat screening</h2>
+    <p class="sec-note">Ubah angka sesuai AD/ART himpunan. Status tiap paslon dihitung ulang langsung. Syarat yang sama berlaku untuk Ketua dan Wakil Ketua.</p>
+    <div class="req-grid">
+      <label for="s-ipk">IPK minimal <input class="fld num" id="s-ipk" type="number" step="0.01" min="0" max="4" inputmode="decimal"><span class="hint">skala 4,00</span></label>
+      <label for="s-semester">Semester minimal <input class="fld num" id="s-semester" type="number" step="1" min="1" max="14" inputmode="numeric"><span class="hint">semester berjalan</span></label>
+      <label for="s-sks">SKS lulus minimal <input class="fld num" id="s-sks" type="number" step="1" min="0" max="200" inputmode="numeric"><span class="hint">sesuai transkrip</span></label>
+      <label for="s-org">Organisasi minimal <input class="fld num" id="s-org" type="number" step="1" min="0" max="10" inputmode="numeric"><span class="hint">jumlah periode kepengurusan</span></label>
+    </div>
+  </section>
+
+  <section aria-labelledby="h-daftar">
+    <h2 id="h-daftar">Daftar paslon</h2>
+    <p class="sec-note">Buka satu paslon untuk mengisi data calon dan mencentang berkas yang sudah diverifikasi panitia.</p>
+
+    <div class="bar-tools">
+      <div class="chips" id="chips" role="group" aria-label="Filter status"></div>
+      <input class="fld search" id="q" type="search" placeholder="Cari nama atau NPM" aria-label="Cari nama atau NPM">
+      <div class="actions">
+        <button type="button" class="btn ghost" data-act="rekap">Salin rekap</button>
+        <button type="button" class="btn" data-act="add">Tambah paslon</button>
+      </div>
+    </div>
+    <div id="msg" role="status"></div>
+
+    <form id="addForm" hidden novalidate>
+      <div class="pair">
+        <fieldset>
+          <legend>Calon Ketua</legend>
+          <label class="wide" for="a-k-nama">Nama lengkap<input class="fld txt" id="a-k-nama" autocomplete="off"></label>
+          <label class="wide" for="a-k-npm">NPM<input class="fld txt" id="a-k-npm" inputmode="numeric" autocomplete="off"></label>
+          <label for="a-k-ipk">IPK<input class="fld num" id="a-k-ipk" type="number" step="0.01" min="0" max="4"></label>
+          <label for="a-k-semester">Semester<input class="fld num" id="a-k-semester" type="number" step="1" min="1" max="14"></label>
+          <label for="a-k-sks">SKS lulus<input class="fld num" id="a-k-sks" type="number" step="1" min="0"></label>
+          <label for="a-k-org">Periode organisasi<input class="fld num" id="a-k-org" type="number" step="1" min="0"></label>
+        </fieldset>
+        <fieldset>
+          <legend>Calon Wakil Ketua</legend>
+          <label class="wide" for="a-w-nama">Nama lengkap<input class="fld txt" id="a-w-nama" autocomplete="off"></label>
+          <label class="wide" for="a-w-npm">NPM<input class="fld txt" id="a-w-npm" inputmode="numeric" autocomplete="off"></label>
+          <label for="a-w-ipk">IPK<input class="fld num" id="a-w-ipk" type="number" step="0.01" min="0" max="4"></label>
+          <label for="a-w-semester">Semester<input class="fld num" id="a-w-semester" type="number" step="1" min="1" max="14"></label>
+          <label for="a-w-sks">SKS lulus<input class="fld num" id="a-w-sks" type="number" step="1" min="0"></label>
+          <label for="a-w-org">Periode organisasi<input class="fld num" id="a-w-org" type="number" step="1" min="0"></label>
+        </fieldset>
+      </div>
+      <p id="addErr" role="alert"></p>
+      <div class="actions" style="margin-left:0">
+        <button type="submit" class="btn">Tambahkan paslon</button>
+        <button type="button" class="btn ghost" data-act="cancel-add">Batal</button>
+      </div>
+    </form>
+
+    <div class="note" id="sampleNote" hidden>
+      <span>Nama dan angka di bawah adalah data contoh yang fiktif.</span>
+      <button type="button" class="btn danger" data-act="clear">Kosongkan data contoh</button>
+    </div>
+
+    <div class="list" id="list"></div>
+
+    <div id="rekap" hidden>
+      <label class="lbl" for="rekapText" style="font-size:.74rem;font-weight:600;letter-spacing:.08em;text-transform:uppercase;color:var(--muted)">Rekap siap salin</label>
+      <textarea class="fld" id="rekapText" readonly></textarea>
+    </div>
+  </section>
+
+  <p class="foot">Aturan status: Tidak lolos jika ada syarat calon yang belum terpenuhi. Perlu perbaikan jika semua syarat terpenuhi tetapi berkas belum lengkap. Lolos jika syarat dan seluruh berkas terpenuhi. Data tersimpan di browser ini saja.</p>
+</div>
+
+<script>
+(function(){
+  var BERKAS=['Formulir pendaftaran','KTM dan KRS aktif','Transkrip nilai terbaru','Surat pernyataan bebas sanksi','Surat rekomendasi dosen wali','Dokumen visi dan misi'];
+  var STORE='screening-paslon-himpunan-v1';
+  var STATUS={lolos:{label:'Lolos',mark:'✓'},perbaikan:{label:'Perlu perbaikan',mark:'!'},gugur:{label:'Tidak lolos',mark:'✕'}};
+  var ROLE={ketua:'Ketua',wakil:'Wakil'};
+  function f2(n){return Number(n).toFixed(2).replace('.',',')}
+  function esc(s){return String(s==null?'':s).replace(/[&<>"']/g,function(c){return {'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;',"'":'&#39;'}[c]})}
+  function $(s){return document.querySelector(s)}
+
+  var CRIT=[
+    {key:'ipk',label:'IPK',type:'num',step:'0.01',min:0,max:4,syarat:function(c){return '≥ '+f2(c.ipk)},pass:function(p,c){return p.ipk>=c.ipk},fail:function(p,c){return 'IPK '+f2(p.ipk)+' di bawah '+f2(c.ipk)}},
+    {key:'semester',label:'Semester berjalan',type:'num',step:'1',min:1,max:14,syarat:function(c){return '≥ '+c.semester},pass:function(p,c){return p.semester>=c.semester},fail:function(p,c){return 'semester '+p.semester+', minimal '+c.semester}},
+    {key:'sks',label:'SKS lulus',type:'num',step:'1',min:0,max:200,syarat:function(c){return '≥ '+c.sks},pass:function(p,c){return p.sks>=c.sks},fail:function(p,c){return p.sks+' SKS, minimal '+c.sks}},
+    {key:'org',label:'Organisasi (periode)',type:'num',step:'1',min:0,max:10,syarat:function(c){return '≥ '+c.org},pass:function(p,c){return p.org>=c.org},fail:function(p,c){return p.org+' periode organisasi, minimal '+c.org}},
+    {key:'aktif',label:'Mahasiswa aktif',type:'bool',boolLabel:'Aktif',syarat:function(){return 'Ya'},pass:function(p){return !!p.aktif},fail:function(){return 'tidak berstatus aktif'}},
+    {key:'sanksi',label:'Sedang dikenai sanksi',type:'bool',boolLabel:'Ada sanksi',syarat:function(){return 'Tidak ada'},pass:function(p){return !p.sanksi},fail:function(){return 'sedang dikenai sanksi'}}
+  ];
+
+  function P(nama,npm,ipk,sks,semester,org){return {nama:nama,npm:npm,ipk:ipk,sks:sks,semester:semester,org:org,aktif:true,sanksi:false}}
+  function B(n){var a=[];for(var i=0;i<BERKAS.length;i++)a.push(i<n);return a}
+  function sample(){
+    return {
+      himpunan:'HIMA Contoh, Fakultas Anda',
+      cfg:{ipk:3,semester:3,sks:40,org:1},
+      sample:true, nextId:6,
+      items:[
+        {id:1,no:1,ketua:P('Aditya Ramadhan Putra','140110240012',3.62,78,5,2),wakil:P('Nadia Safitri','140110240031',3.48,76,5,2),berkas:B(6),catatan:'Berkas lengkap, diverifikasi panitia.'},
+        {id:2,no:2,ketua:P('Raka Firmansyah','140110240044',3.21,74,5,1),wakil:P('Salsabila Azzahra','140110240058',3.40,72,5,1),berkas:B(4),catatan:'Menunggu surat rekomendasi dosen wali dan dokumen visi misi.'},
+        {id:3,no:3,ketua:P('Dimas Prasetyo','140110240067',2.84,70,5,2),wakil:P('Intan Maharani','140110250009',3.30,42,3,0),berkas:[true,true,true,false,false,true],catatan:''},
+        {id:4,no:4,ketua:P('Fajar Nugraha','140110240072',3.55,76,5,3),wakil:P('Tiara Kusumawati','140110250021',3.12,42,3,1),berkas:B(5),catatan:'Tinggal dokumen visi dan misi.'},
+        {id:5,no:5,ketua:P('Bima Satria Wibowo','140110240081',3.38,74,5,2),wakil:P('Aulia Rahmawati','140110250033',3.67,44,3,1),berkas:B(6),catatan:''}
+      ]
+    };
+  }
+  function load(){
+    try{
+      var raw=localStorage.getItem(STORE);
+      if(raw){var s=JSON.parse(raw); if(s&&Array.isArray(s.items)&&s.cfg&&typeof s.nextId==='number')return s}
+    }catch(e){}
+    return sample();
+  }
+  var state=load();
+  var filter='semua', q='';
+  var openId=state.sample?2:(state.items[0]?state.items[0].id:null);
+  function save(){try{localStorage.setItem(STORE,JSON.stringify(state))}catch(e){}}
+
+  function evalP(it){
+    var fails=[],roles=['ketua','wakil'];
+    roles.forEach(function(r){CRIT.forEach(function(c){if(!c.pass(it[r],state.cfg))fails.push(ROLE[r]+': '+c.fail(it[r],state.cfg))})});
+    var missing=[];it.berkas.forEach(function(v,i){if(!v)missing.push(BERKAS[i])});
+    var status=fails.length?'gugur':(missing.length?'perbaikan':'lolos');
+    return {status:status,fails:fails,missing:missing,done:it.berkas.length-missing.length};
+  }
+  function subText(e){
+    if(e.status==='gugur')return e.fails[0]+(e.fails.length>1?' (+'+(e.fails.length-1)+' lainnya)':'');
+    if(e.status==='perbaikan')return 'Kurang: '+e.missing.join(', ');
+    return 'Syarat dan berkas terpenuhi';
+  }
+  function stateHTML(it,e){
+    var segs='';for(var i=0;i<BERKAS.length;i++)segs+='<span class="seg'+(it.berkas[i]?' on':'')+'"></span>';
+    return '<span class="pill"><span aria-hidden="true">'+STATUS[e.status].mark+'</span>'+STATUS[e.status].label+'</span>'
+      +'<span class="sub">'+esc(subText(e))+'</span>'
+      +'<span class="segs" role="img" aria-label="Berkas terverifikasi '+e.done+' dari '+BERKAS.length+'">'+segs+'</span>';
+  }
+  function namesHTML(it){
+    return '<span class="nm"><i>Ketua</i><span>'+esc(it.ketua.nama||'(belum diisi)')+'</span></span>'
+      +'<span class="nm"><i>Wakil</i><span>'+esc(it.wakil.nama||'(belum diisi)')+'</span></span>';
+  }
+  function markHTML(it,role,c){
+    var ok=c.pass(it[role],state.cfg);
+    return '<span class="mark '+(ok?'ok':'bad')+'" data-id="'+it.id+'" data-role="'+role+'" data-key="'+c.key+'" role="img" aria-label="'+(ok?'memenuhi':'tidak memenuhi')+'">'+(ok?'✓':'✕')+'</span>';
+  }
+  function cellHTML(it,role,c){
+    var p=it[role],id='f-'+it.id+'-'+role+'-'+c.key,attrs=' data-id="'+it.id+'" data-role="'+role+'" data-key="'+c.key+'"';
+    var field;
+    if(c.type==='bool')field='<label for="'+id+'"><input type="checkbox" id="'+id+'"'+attrs+(p[c.key]?' checked':'')+'>'+c.boolLabel+'</label>';
+    else field='<input class="fld num" id="'+id+'" type="number" step="'+c.step+'" min="'+c.min+'" max="'+c.max+'" value="'+esc(p[c.key])+'" aria-label="'+c.label+' calon '+ROLE[role]+'"'+attrs+'>';
+    return '<div class="cell">'+field+markHTML(it,role,c)+'</div>';
+  }
+  function textRow(it,key,label,mode){
+    var h='<tr><th scope="row">'+label+'</th><td></td>';
+    ['ketua','wakil'].forEach(function(r){
+      var id='f-'+it.id+'-'+r+'-'+key;
+      h+='<td><input class="fld txt" id="'+id+'" value="'+esc(it[r][key])+'" aria-label="'+label+' calon '+ROLE[r]+'" data-id="'+it.id+'" data-role="'+r+'" data-key="'+key+'" autocomplete="off"'+(mode?' inputmode="'+mode+'"':'')+'></td>';
+    });
+    return h+'</tr>';
+  }
+  function detailHTML(it,e){
+    var rows=textRow(it,'nama','Nama')+textRow(it,'npm','NPM','numeric');
+    CRIT.forEach(function(c){
+      rows+='<tr><th scope="row">'+c.label+'</th><td><span class="req" data-key="'+c.key+'">'+esc(c.syarat(state.cfg))+'</span></td><td>'+cellHTML(it,'ketua',c)+'</td><td>'+cellHTML(it,'wakil',c)+'</td></tr>';
+    });
+    var chks='';
+    BERKAS.forEach(function(b,i){
+      var id='b-'+it.id+'-'+i;
+      chks+='<label class="chk" for="'+id+'"><input type="checkbox" id="'+id+'" data-id="'+it.id+'" data-berkas="'+i+'"'+(it.berkas[i]?' checked':'')+'>'+b+'</label>';
+    });
+    return '<div class="tbl-wrap"><table class="tbl"><caption class="sr">Data calon dan pemenuhan syarat paslon '+it.no+'</caption>'
+      +'<thead><tr><th scope="col">Data</th><th scope="col">Syarat</th><th scope="col">Calon Ketua</th><th scope="col">Calon Wakil</th></tr></thead><tbody>'+rows+'</tbody></table></div>'
+      +'<div class="side"><fieldset><legend><span>Berkas terverifikasi</span><span class="cnt">'+e.done+'/'+BERKAS.length+'</span></legend>'+chks+'</fieldset>'
+      +'<div><label class="lbl" for="n-'+it.id+'">Catatan panitia</label><textarea class="fld" id="n-'+it.id+'" data-id="'+it.id+'" data-catatan="1" placeholder="Hasil verifikasi, berkas yang perlu dilengkapi, dan sebagainya">'+esc(it.catatan)+'</textarea></div>'
+      +'<div><button type="button" class="btn danger" data-del="'+it.id+'">Hapus paslon</button></div></div>';
+  }
+  function rowHTML(it){
+    var e=evalP(it),open=openId===it.id;
+    return '<article class="row" data-row="'+it.id+'" data-status="'+e.status+'">'
+      +'<button type="button" class="row-head" id="h'+it.id+'" aria-expanded="'+open+'" aria-controls="d'+it.id+'" data-toggle="'+it.id+'">'
+      +'<span class="no"><span class="sr">Paslon nomor </span>'+String(it.no).padStart(2,'0')+'</span>'
+      +'<span class="names">'+namesHTML(it)+'</span>'
+      +'<span class="state">'+stateHTML(it,e)+'</span>'
+      +'<span class="chev" aria-hidden="true"></span></button>'
+      +'<div class="detail" id="d'+it.id+'" role="region" aria-labelledby="h'+it.id+'"'+(open?'':' hidden')+'>'+(open?detailHTML(it,e):'')+'</div></article>';
+  }
+
+  function counts(){
+    var c={lolos:0,perbaikan:0,gugur:0};
+    state.items.forEach(function(it){c[evalP(it).status]++});
+    return c;
+  }
+  function renderSummary(){
+    var c=counts(),n=state.items.length;
+    var bar=n?['lolos','perbaikan','gugur'].map(function(k){var cls={lolos:'b-ok',perbaikan:'b-warn',gugur:'b-bad'}[k];return c[k]?'<span class="'+cls+'" style="flex-grow:'+c[k]+'"></span>':''}).join(''):'<span class="b-none"></span>';
+    $('#summary').innerHTML='<div class="total"><b>'+n+'</b><span>paslon terdaftar</span></div>'
+      +'<div class="dist"><div class="bar" aria-hidden="true">'+bar+'</div>'
+      +'<ul class="legend"><li><i style="background:var(--ok)"></i>Lolos <b>'+c.lolos+'</b></li><li><i style="background:var(--warn)"></i>Perlu perbaikan <b>'+c.perbaikan+'</b></li><li><i style="background:var(--bad)"></i>Tidak lolos <b>'+c.gugur+'</b></li></ul></div>';
+    var defs=[['semua','Semua',n],['lolos','Lolos',c.lolos],['perbaikan','Perlu perbaikan',c.perbaikan],['gugur','Tidak lolos',c.gugur]];
+    $('#chips').innerHTML=defs.map(function(d){return '<button type="button" class="chip" data-filter="'+d[0]+'" aria-pressed="'+(filter===d[0])+'">'+d[1]+'<em>'+d[2]+'</em></button>'}).join('');
+  }
+  function renderList(){
+    var qq=q.trim().toLowerCase();
+    var items=state.items.filter(function(it){
+      if(filter!=='semua'&&evalP(it).status!==filter)return false;
+      if(qq){var hay=[it.ketua.nama,it.ketua.npm,it.wakil.nama,it.wakil.npm,'paslon '+it.no].join(' ').toLowerCase();if(hay.indexOf(qq)<0)return false}
+      return true;
+    });
+    var list=$('#list');
+    if(!state.items.length)list.innerHTML='<div class="empty"><p>Belum ada paslon. Tambahkan paslon pertama atau lihat contoh tampilannya.</p><div class="actions"><button type="button" class="btn" data-act="add">Tambah paslon</button><button type="button" class="btn ghost" data-act="sample">Muat data contoh</button></div></div>';
+    else if(!items.length)list.innerHTML='<p class="none">Tidak ada paslon yang cocok dengan filter ini.</p>';
+    else list.innerHTML=items.map(rowHTML).join('');
+    $('#sampleNote').hidden=!state.sample;
+    renderSummary();
+  }
+  function updateDerived(){
+    state.items.forEach(function(it){
+      var row=document.querySelector('[data-row="'+it.id+'"]');if(!row)return;
+      var e=evalP(it);
+      row.dataset.status=e.status;
+      row.querySelector('.state').innerHTML=stateHTML(it,e);
+      row.querySelector('.names').innerHTML=namesHTML(it);
+      var cnt=row.querySelector('.cnt');if(cnt)cnt.textContent=e.done+'/'+BERKAS.length;
+      row.querySelectorAll('.mark').forEach(function(m){
+        var c=CRIT.filter(function(x){return x.key===m.dataset.key})[0],ok=c.pass(it[m.dataset.role],state.cfg);
+        m.className='mark '+(ok?'ok':'bad');m.textContent=ok?'✓':'✕';m.setAttribute('aria-label',ok?'memenuhi':'tidak memenuhi');
+      });
+    });
+    document.querySelectorAll('.req').forEach(function(el){
+      var c=CRIT.filter(function(x){return x.key===el.dataset.key})[0];el.textContent=c.syarat(state.cfg);
+    });
+    renderSummary();save();
+  }
+  function say(t){var m=$('#msg');m.textContent=t;clearTimeout(say.t);say.t=setTimeout(function(){m.textContent=''},4000)}
+  function arm(btn,text,fn){
+    if(btn.dataset.armed){clearTimeout(+btn.dataset.armed);btn.textContent=btn.dataset.orig;delete btn.dataset.armed;fn();return}
+    btn.dataset.orig=btn.textContent;btn.textContent=text;
+    btn.dataset.armed=setTimeout(function(){btn.textContent=btn.dataset.orig;delete btn.dataset.armed},4000);
+  }
+
+  function rekapText(){
+    var c=state.cfg,t=[];
+    t.push('Berita acara screening paslon, '+(state.himpunan||'Himpunan')+', periode 2027');
+    t.push('Syarat: IPK minimal '+f2(c.ipk)+', semester minimal '+c.semester+', SKS lulus minimal '+c.sks+', organisasi minimal '+c.org+' periode, berstatus aktif, tidak sedang dikenai sanksi.');
+    t.push('');
+    state.items.forEach(function(it){
+      var e=evalP(it);
+      t.push(it.no+'. '+(it.ketua.nama||'-')+' dan '+(it.wakil.nama||'-')+': '+STATUS[e.status].label);
+      if(e.status!=='lolos')t.push('   '+subText(e));
+    });
+    var k=counts();
+    t.push('');
+    t.push('Ringkasan: '+k.lolos+' lolos, '+k.perbaikan+' perlu perbaikan, '+k.gugur+' tidak lolos dari '+state.items.length+' paslon.');
+    return t.join('\n');
+  }
+
+  /* events */
+  var list=$('#list');
+  list.addEventListener('click',function(ev){
+    var t=ev.target.closest('[data-toggle]');
+    if(t){var id=+t.dataset.toggle;openId=openId===id?null:id;renderList();var h=document.getElementById('h'+id);if(h)h.focus();return}
+    var d=ev.target.closest('[data-del]');
+    if(d){var did=+d.dataset.del;arm(d,'Klik lagi untuk menghapus',function(){state.items=state.items.filter(function(x){return x.id!==did});if(openId===did)openId=null;renderList();save();say('Paslon dihapus.')})}
+  });
+  list.addEventListener('input',function(ev){
+    var el=ev.target,it=state.items.filter(function(x){return x.id===+el.dataset.id})[0];
+    if(!it)return;
+    if(el.dataset.role){
+      var role=el.dataset.role,key=el.dataset.key,c=CRIT.filter(function(x){return x.key===key})[0];
+      if(!c)it[role][key]=el.value;
+      else if(c.type==='bool')it[role][key]=el.checked;
+      else{var v=parseFloat(el.value);it[role][key]=isNaN(v)?0:v}
+    }else if(el.dataset.berkas!==undefined){it.berkas[+el.dataset.berkas]=el.checked}
+    else if(el.dataset.catatan!==undefined){it.catatan=el.value}
+    updateDerived();
+  });
+
+  $('#chips').addEventListener('click',function(ev){
+    var b=ev.target.closest('[data-filter]');if(!b)return;
+    filter=b.dataset.filter;renderList();
+    var again=document.querySelector('[data-filter="'+filter+'"]');if(again)again.focus();
+  });
+  $('#q').addEventListener('input',function(ev){q=ev.target.value;renderList()});
+  $('#himpunan').addEventListener('input',function(ev){state.himpunan=ev.target.value;save()});
+  ['ipk','semester','sks','org'].forEach(function(k){
+    var el=$('#s-'+k);el.value=state.cfg[k];
+    el.addEventListener('input',function(){var v=parseFloat(el.value);state.cfg[k]=isNaN(v)?0:v;updateDerived()});
+  });
+
+  function openAdd(){
+    var f=$('#addForm');f.hidden=false;$('#addErr').textContent='';
+    var n=$('#a-k-nama');n.focus();f.scrollIntoView({block:'nearest'});
+  }
+  document.addEventListener('click',function(ev){
+    var b=ev.target.closest('[data-act]');if(!b)return;
+    var a=b.dataset.act;
+    if(a==='add')openAdd();
+    else if(a==='cancel-add'){$('#addForm').hidden=true}
+    else if(a==='sample'){state=sample();filter='semua';q='';$('#q').value='';openId=2;syncInputs();renderList();save()}
+    else if(a==='clear'){arm(b,'Klik lagi untuk mengosongkan',function(){state.items=[];state.sample=false;state.nextId=1;openId=null;renderList();save();say('Data contoh dikosongkan.')})}
+    else if(a==='rekap'){
+      var text=rekapText(),box=$('#rekapText');box.value=text;
+      var show=function(){$('#rekap').hidden=false;box.focus();box.select()};
+      if(navigator.clipboard&&navigator.clipboard.writeText){
+        navigator.clipboard.writeText(text).then(function(){$('#rekap').hidden=false;say('Rekap disalin.')},function(){show();say('Tidak bisa menyalin otomatis. Salin dari kotak di bawah.')});
+      }else{show();say('Tidak bisa menyalin otomatis. Salin dari kotak di bawah.')}
+    }
+  });
+
+  $('#addForm').addEventListener('submit',function(ev){
+    ev.preventDefault();
+    function num(id,def){var v=parseFloat($(id).value);return isNaN(v)?def:v}
+    function person(r){
+      var p='#a-'+r+'-';
+      return {nama:$(p+'nama').value.trim(),npm:$(p+'npm').value.trim(),ipk:num(p+'ipk',0),semester:num(p+'semester',1),sks:num(p+'sks',0),org:num(p+'org',0),aktif:true,sanksi:false};
+    }
+    var k=person('k'),w=person('w'),err=$('#addErr');
+    if(!k.nama||!w.nama){err.textContent='Isi nama calon Ketua dan calon Wakil Ketua.';return}
+    if(k.ipk>4||w.ipk>4){err.textContent='IPK tidak boleh lebih dari 4,00.';return}
+    if(state.sample&&state.items.every(function(x){return x.id<6})){/* tetap campur dengan contoh sampai dikosongkan */}
+    var no=state.items.reduce(function(m,x){return Math.max(m,x.no)},0)+1;
+    var item={id:state.nextId++,no:no,ketua:k,wakil:w,berkas:B(0),catatan:''};
+    state.items.push(item);openId=item.id;filter='semua';q='';$('#q').value='';
+    ev.target.reset();ev.target.hidden=true;err.textContent='';
+    renderList();save();
+    var row=document.querySelector('[data-row="'+item.id+'"]');if(row)row.scrollIntoView({block:'nearest'});
+    say('Paslon nomor '+no+' ditambahkan. Centang berkas yang sudah diverifikasi.');
+  });
+
+  function syncInputs(){
+    $('#himpunan').value=state.himpunan||'';
+    ['ipk','semester','sks','org'].forEach(function(k){$('#s-'+k).value=state.cfg[k]});
+  }
+  syncInputs();renderList();
+})();
+</script>
+</body>
+</html>
